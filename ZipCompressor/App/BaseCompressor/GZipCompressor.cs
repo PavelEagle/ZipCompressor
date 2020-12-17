@@ -2,7 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 
-namespace ZipCompressor.BaseCompressor
+namespace ZipCompressor.App.BaseCompressor
 {
   class GZipCompressor: ICompressor
   {

@@ -1,8 +1,8 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Management;
+using Microsoft.Win32;
 
-namespace ZipCompressor
+namespace ZipCompressor.Services
 {
   public class SystemInfo
   {

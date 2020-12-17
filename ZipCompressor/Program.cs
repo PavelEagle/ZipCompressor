@@ -1,5 +1,10 @@
 ﻿using System;
-using ZipCompressor.BaseCompressor;
+using System.IO;
+using System.Reflection;
+using ZipCompressor.App;
+using ZipCompressor.App.BaseCompressor;
+using ZipCompressor.Common;
+using ZipCompressor.Services;
 
 namespace ZipCompressor
 {
@@ -7,12 +12,13 @@ namespace ZipCompressor
   {
     static void Main(string[] args)
     {
-      var path = @".\data";
-      var zipCompressor = new GZipCompressor(path);
+      var path = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName + @"\data";
+
+      //FileCreator.CreateDummyFile(path + @"\Test2.txt", 1000000);
+      var zipCompressor = new ZipApplication(new GZipCompressor(path), new ZipSettings());
 
       SystemInfo.getOperatingSystemInfo(); //Call get operating system info method which will display operating system information.
       SystemInfo.getProcessorInfo(); //Call get  processor info method which will display processor info.
-      Console.ReadLine();
 
       Console.WriteLine("Start...");
       zipCompressor.StartCompress();

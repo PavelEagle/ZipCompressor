@@ -69,6 +69,7 @@ artifacts/
 # Zip
 *.txt
 *.gzip
+*.gz
 
 # StyleCop
 StyleCopReport.xml
