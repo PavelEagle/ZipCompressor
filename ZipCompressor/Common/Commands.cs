@@ -1,8 +1,9 @@
 ﻿namespace ZipCompressor.Common
 {
-  public enum CompressionEnum
+  public enum Commands
   {
     Compression,
-    Decompression
+    Decompression,
+    Create
   }
 }

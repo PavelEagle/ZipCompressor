@@ -102,6 +102,20 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+*.pdb
+*.*sdf
+*.*.config
+*.dbmdl
+*.log
+*.tlog
+*.obj
+*.cache
+*.jfm
+
 # Chutzpah Test files
 _Chutzpah*
 
