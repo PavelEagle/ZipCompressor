@@ -3,7 +3,7 @@ using System.IO;
 
 namespace ZipCompressor.Common
 {
-  public class CommandOptions
+  public struct CommandOptions
   {
     public CommandOptions(Commands mode, string inputFileName, string outputFileName)
     {
