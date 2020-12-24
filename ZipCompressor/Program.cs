@@ -16,13 +16,12 @@ namespace ZipCompressor
       Console.WriteLine("Enter");
 
       //FileCreator.CreateDummyFile(path + @"\Test2.txt", 1000000);
-      var zipCompressor = new ZipApplication(new GZipCompressor(path), CommandOptions.Create(args));
+      var zipCompressor = new ZipApplication(CommandOptions.Create(args), new GZipCompressor());
 
       SystemInfo.getOperatingSystemInfo(); //Call get operating system info method which will display operating system information.
       SystemInfo.getProcessorInfo(); //Call get  processor info method which will display processor info.
 
       Console.WriteLine("Start...");
-      zipCompressor.StartCompress();
     }
   }
 }

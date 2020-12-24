@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace ZipCompressor.App.BaseCompressor
 {
-  public class ChunkManager
+  public class ChunkCollection: IChunkCollection
   {
     private readonly Dictionary<int, byte[]> _chunks;
     private readonly object _lock = new object();
 
-    public ChunkManager()
+    public ChunkCollection()
     {
       _chunks = new Dictionary<int, byte[]>(0);
     }
@@ -24,18 +24,25 @@ namespace ZipCompressor.App.BaseCompressor
       }
     }
 
-    public byte[] Get(int index, bool remove = true)
+    public void Remove(int index)
     {
       lock (_lock)
       {
         if (!_chunks.ContainsKey(index))
           throw new ArgumentException("Chunk is not exist");
 
-        var chunk = _chunks[index];
-        if (remove)
-          _chunks.Remove(index);
+        _chunks.Remove(index);
+      }
+    }
 
-        return chunk;
+    public byte[] Get(int index)
+    {
+      lock (_lock)
+      {
+        if (_chunks.TryGetValue(index, out var result))
+          return result;
+
+        throw new ArgumentException("Chunk is not exist");
       }
     }
 
