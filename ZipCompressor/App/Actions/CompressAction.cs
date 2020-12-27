@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using ZipCompressor.App.BaseCompressor;
-using ZipCompressor.Common;
 
 namespace ZipCompressor.App.Actions
 {

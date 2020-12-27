@@ -8,33 +8,23 @@ namespace ZipCompressor.App.Actions
     private readonly IChunkCollection _inputChunkCollection;
     private static volatile int _nextWriteChunk;
     private readonly int _chunkIndex;
-    private readonly string _outputFileName;
+    private readonly string _outputFilePath;
 
-    public WriteAction(IChunkCollection inputChunkCollection, string inputFilePath, int chunkIndex, string outputFilePath)
+    public WriteAction(IChunkCollection inputChunkCollection, int chunkIndex, string outputFilePath)
     {
+      _chunkIndex = chunkIndex;
       _inputChunkCollection = inputChunkCollection;
-      var fileLength = new FileInfo(inputFilePath).Length;
-      var availableBytes = fileLength;
-      var chunkIndex = 0;
-      while (availableBytes > 0)
-      {
-        var readCount = availableBytes < bufferSize
-          ? (int)availableBytes
-          : bufferSize;
-
-        availableBytes -= readCount;
-        chunkIndex++;
-      }
+      _outputFilePath = outputFilePath;
 
       if (_chunkIndex == 0)
-        _nextWriteChunk = 0;
+        _nextWriteChunk = 0; // Reset on a new file processing.
     }
 
     public void Execute()
     {
-      while (_chunkIndex != _nextWriteChunk) { }
+      while (_chunkIndex != _nextWriteChunk) { } // The file must be written sequentially, because the size of the following blocks is unknown.
 
-      using (var writer = new BinaryWriter(File.Open(_outputFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)))
+      using (var writer = new BinaryWriter(File.Open(_outputFilePath, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None)))
       {
         writer.BaseStream.Seek(0, SeekOrigin.End);
         var bytes = _inputChunkCollection.Get(_chunkIndex);
@@ -45,3 +35,4 @@ namespace ZipCompressor.App.Actions
     }
   }
 }
+

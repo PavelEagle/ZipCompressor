@@ -2,8 +2,8 @@
 {
   public enum Commands
   {
-    Compression,
-    Decompression,
+    Compress,
+    Decompress,
     Create
   }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ZipCompressor.App.BaseCompressor
 {
-  interface IChunkCollection
+  public interface IChunkCollection
   {
     void Add(int index, byte[] bytes);
     void Remove(int index);

@@ -24,8 +24,8 @@ namespace ZipCompressor.Common
       var operationString = args[0]; //const
       var operation = (operationString.Substring(0,1).ToUpper()+ operationString.Substring(1).ToLower()) switch
       {
-        nameof(Commands.Compression) => Commands.Compression,
-        nameof(Commands.Decompression) => Commands.Decompression,
+        nameof(Commands.Compress) => Commands.Compress,
+        nameof(Commands.Decompress) => Commands.Decompress,
         nameof(Commands.Create) => Commands.Create,
         _ => throw new ArgumentException($"Unsupported operation: {operationString}. Supported operations list: compress, decompress."),
       };

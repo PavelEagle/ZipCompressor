@@ -4,7 +4,7 @@ namespace ZipCompressor.App
 {
   interface IActionPipeline
   {
-    void Start();
+    void Execute();
     void AddAction(IAction action);
     void Clear();
   }
