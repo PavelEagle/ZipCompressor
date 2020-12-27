@@ -2,6 +2,6 @@
 {
   public interface IAction
   {
-    void Execute();
+    void Execute(int chunkIndex);
   }
 }

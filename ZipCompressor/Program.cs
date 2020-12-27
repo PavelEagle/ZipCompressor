@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
 using System.Threading;
 using ZipCompressor.App;
 using ZipCompressor.App.BaseCompressor;
@@ -13,40 +11,51 @@ namespace ZipCompressor
   {
     static void Main(string[] args)
     {
-      Console.WriteLine("Enter");
+      //FileCreator.CreateDummyFile(@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", 100000000);
+#if DEBUG
+      var test = new [] { "decompress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.gz", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\111.txt" };
+      //var test = new [] { "compress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.gz" };
+#endif
 
-      var test = new [] {"compress", "input.txt", "output.gz"};
-
-      //FileCreator.CreateDummyFile(path + @"\Test2.txt", 1000000);
       var zipCompressor = new ZipApplication(CommandOptions.Create(test), new GZipCompressor());
 
-
-      SystemInfo.getOperatingSystemInfo(); //Call get operating system info method which will display operating system information.
-      SystemInfo.getProcessorInfo(); //Call get  processor info method which will display processor info.
-
+      Console.WriteLine($"Count of cores: {Environment.ProcessorCount}");
       Console.WriteLine("Start...");
-      zipCompressor.StartProcess();
+      try
+      {
+        Run(zipCompressor);
+      }
+      catch 
+      {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.Error.WriteLine(Constants.UnsuccessfulExecution);
+        Environment.Exit(Constants.ErrorExitCode);
+      }
+#if DEBUG
+      finally
+      {
+        Console.ReadLine();
+      }
+#endif
+
+      Console.ForegroundColor = ConsoleColor.Green;
+      Console.WriteLine(Constants.SuccessfulExecution);
+      Console.ForegroundColor = ConsoleColor.White;
+
+      Environment.Exit(Constants.SuccessExitCode);
     }
 
-    public void Run(ZipApplication _archiver)
+    public static void Run(ZipApplication archiver)
     {
-     bool isTerminated = false;
+      var zipAppThread = new Thread(archiver.StartProcess);
 
-     var archiverThread =
-        new Thread(
-          _archiver.StartProcess)
-        {
-          Name = "GZipArchiver",
-          Priority = ThreadPriority.AboveNormal
-        };
-      archiverThread.Start();
+      zipAppThread.Start();
 
-      OutputResult();
-    }
-
-    private void OutputResult()
-    {
-      Console.WriteLine("Done!");
+      using (var spinner = new ConsoleSpinner())
+      {
+        while (zipAppThread.IsAlive)
+          spinner.Turn();
+      }
     }
   }
 }

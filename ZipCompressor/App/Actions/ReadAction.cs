@@ -8,25 +8,23 @@ namespace ZipCompressor.App.Actions
     private readonly string _inputFileName;
     private readonly long _startPosition;
     private readonly int _bytesCount;
-    private readonly int _chunkIndex;
-    private readonly IChunkCollection _outputHolder;
+    private readonly IChunkCollection _inputHolder;
 
-    public ReadAction(long startPosition, int bytesCount, int chunkIndex, IChunkCollection outputHolder, string inputFileName)
+    public ReadAction(long startPosition, int bytesCount, IChunkCollection inputHolder, string inputFileName)
     {
       _startPosition = startPosition;
       _bytesCount = bytesCount;
-      _chunkIndex = chunkIndex;
-      _outputHolder = outputHolder;
+      _inputHolder = inputHolder;
       _inputFileName = inputFileName;
     }
 
-    public void Execute()
+    public void Execute(int chunkIndex)
     {
       using (var reader = new BinaryReader(File.Open(_inputFileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
       {
         reader.BaseStream.Seek(_startPosition, SeekOrigin.Begin);
         var bytes = reader.ReadBytes(_bytesCount);
-        _outputHolder.Add(_chunkIndex, bytes);
+        _inputHolder.Add(chunkIndex, bytes);
       }
     }
   }

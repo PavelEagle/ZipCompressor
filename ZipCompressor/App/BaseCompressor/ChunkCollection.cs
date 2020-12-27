@@ -10,7 +10,7 @@ namespace ZipCompressor.App.BaseCompressor
 
     public ChunkCollection()
     {
-      _chunks = new Dictionary<int, byte[]>(0);
+      _chunks = new Dictionary<int, byte[]>();
     }
 
     public void Add(int index, byte[] bytes)

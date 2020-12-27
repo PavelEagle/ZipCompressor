@@ -1,26 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using ZipCompressor.App.Actions;
-using ZipCompressor.App.BaseCompressor;
 
 namespace ZipCompressor.App
 {
-  public class ActionPipeline: IActionPipeline
+  public class ActionPipeline : IActionPipeline
   {
     public event EventHandler<TaskEventArgs> TaskDone;
-    private static List<IAction> _actionsPipeline;
+    private static IList<IAction> _actionsPipeline;
+    private readonly int _chunkIndex;
 
-    public ActionPipeline(List<IAction> actions)
+    public ActionPipeline(IList<IAction> actions, int chunkIndex)
     {
       _actionsPipeline = actions;
+      _chunkIndex = chunkIndex;
     }
-
     public void Execute()
     {
-      foreach (var action in _actionsPipeline)
-        action.Execute();
-
+      foreach (var action in _actionsPipeline.ToList())
+      {
+        action.Execute(_chunkIndex);
+      }
+      
       Clear();
       TaskDone?.Invoke(this, new TaskEventArgs(Thread.CurrentThread));
     }

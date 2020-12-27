@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -8,7 +9,7 @@ namespace ZipCompressor.App
   {
     private readonly Queue<ActionPipeline> _queue;
     private readonly int _maxThreadsCount;
-    private readonly List<Thread> _threadPool; 
+    private readonly List<Thread> _threadPool;
     private readonly object _lock = new object();
 
     private volatile bool _isExecuting;
@@ -24,13 +25,11 @@ namespace ZipCompressor.App
 
     public void AddTask(ActionPipeline task)
     {
-      _queue.Enqueue(task);
-    }
-
-    public void AddTasks(IEnumerable<ActionPipeline> tasks)
-    {
-      foreach (var task in tasks)
+      lock (_lock)
+      {
         _queue.Enqueue(task);
+      }
+      
     }
 
     public void Start()
@@ -48,7 +47,7 @@ namespace ZipCompressor.App
         if (_threadPool.Count == _maxThreadsCount) // The whole pool is busy with threads.
           continue;
 
-        var task = _queue.Dequeue();
+        var task = _queue.Count > 0 ? _queue.Dequeue() : null;
         if (task == null) // All tasks from the queue are pulled out.
           continue;
 
@@ -62,6 +61,7 @@ namespace ZipCompressor.App
 
       _isExecuting = false;
       _totalTasks = 0;
+      Console.WriteLine("Done!");
     }
 
     public void Stop()

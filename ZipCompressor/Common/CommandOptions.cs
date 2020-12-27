@@ -12,39 +12,62 @@ namespace ZipCompressor.Common
       OutputFileName = outputFileName;
     }
 
-    public Commands Mode { get;}
+    public Commands Mode { get; }
     public string InputFileName { get; }
     public string OutputFileName { get; }
 
+    /// <summary>
+    /// Parse input command line arguments.
+    /// Expected: {compress/decompress} {inputFilePath} {outputFilePath}
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     public static CommandOptions Create(string[] args)
     {
       if (args == null || args.Length != 3)
-        throw new ArgumentException("Three command-line parameters are expected: operation type (compress or decompress), input file path, output file path.");
+        throw new ArgumentException("You need to enter three commands like: compress/decompress inputFilePath outputFilePath");
 
-      var operationString = args[0]; //const
-      var operation = (operationString.Substring(0,1).ToUpper()+ operationString.Substring(1).ToLower()) switch
+      var operationString = args[Constants.OperationArgNumber];
+      var inputFileName = args[Constants.InputFilePathArgNumber]; 
+      var outputFileName = args[Constants.OutputFilePathArgNumber];
+
+      var operation = (operationString.Substring(0, 1).ToUpper() + operationString[1..].ToLower()) switch
       {
         nameof(Commands.Compress) => Commands.Compress,
         nameof(Commands.Decompress) => Commands.Decompress,
-        nameof(Commands.Create) => Commands.Create,
-        _ => throw new ArgumentException($"Unsupported operation: {operationString}. Supported operations list: compress, decompress."),
+        _ => throw new ArgumentException($"Unsupported command: {operationString}. Supported operations list: compress, decompress."),
       };
 
-      var inputFileName = args[1]; //const
-      if (inputFileName.IndexOfAny(Path.GetInvalidFileNameChars()) != -1)
-        throw new ArgumentException($"Invalid input file parameter: {inputFileName}. It must be correct file path.");
-      if (!File.Exists(inputFileName)) { }
-      File.Create(inputFileName);
-      //throw new ArgumentException($"Input file with path {inputFilePath} is not exists. Nothing to compress.");
-      var outputFileName = args[2];
-      if (outputFileName.IndexOfAny(Path.GetInvalidPathChars()) != -1)
-        throw new ArgumentException($"Invalid output file parameter: {outputFileName}. It must be correct file path.");
+      if (string.IsNullOrEmpty(inputFileName) || inputFileName.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+        throw new ArgumentException($"Incorrect input file path: {inputFileName}");
+      if (!File.Exists(inputFileName))
+        throw new ArgumentException($"Input file is not exists: {inputFileName}");
+
+      if (string.IsNullOrEmpty(inputFileName) || outputFileName.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+        throw new ArgumentException($"Incorrect input file path: {outputFileName}");
       if (File.Exists(outputFileName))
-        throw new ArgumentException($"Output file with path {outputFileName} is already exists. Remove it or choose another name for output file.");
-
-      Console.WriteLine($"Yes! {operationString}, {inputFileName}, {outputFileName}");
-
+      {
+        outputFileName = GeneratePath(outputFileName);
+      }
       return new CommandOptions(operation, inputFileName, outputFileName);
+    }
+
+    private static string GeneratePath(string filePath)
+    {
+      var outputFilePath = filePath;
+      var copyIndex = 1;
+
+      while (true)
+      {
+        filePath = $"{outputFilePath.Substring(0, outputFilePath.Length - 3)}({copyIndex}).gz";
+        if (!File.Exists(filePath))
+        {
+          File.Create(filePath);
+          return filePath;
+        }
+
+        copyIndex++;
+      }
     }
   }
 }

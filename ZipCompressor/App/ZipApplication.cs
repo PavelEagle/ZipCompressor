@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using ZipCompressor.App.Actions;
 using ZipCompressor.App.BaseCompressor;
 using ZipCompressor.Common;
 
 namespace ZipCompressor.App
 {
-  public class ZipApplication: IDisposable
+  public class ZipApplication : IDisposable
   {
     private readonly IArchiver _compressor;
     private readonly IChunkCollection _inputChunkCollection;
@@ -46,7 +45,7 @@ namespace ZipCompressor.App
       switch (options.Mode)
       {
         case Commands.Compress:
-          return CreateCompressionTaskQueue(options.InputFileName, options.OutputFileName, Constants.DefaultByteBufferSize * 1024);
+          return CreateCompressionTaskQueue(options.InputFileName, options.OutputFileName, Constants.DefaultByteBufferSize * 1024); //todo
         case Commands.Decompress:
           return CreateDecompressionTaskQueue(options.InputFileName, options.OutputFileName, Constants.DefaultByteBufferSize * 1024);
         default:
@@ -54,6 +53,13 @@ namespace ZipCompressor.App
       }
     }
 
+    /// <summary>
+    /// Create Task Queue for compress
+    /// </summary>
+    /// <param name="inputFilePath"></param>
+    /// <param name="outputFilePath"></param>
+    /// <param name="bufferSize"></param>
+    /// <returns></returns>
     private TaskQueue CreateCompressionTaskQueue(string inputFilePath, string outputFilePath, int bufferSize)
     {
       var taskQueue = new TaskQueue(Environment.ProcessorCount);
@@ -62,16 +68,18 @@ namespace ZipCompressor.App
       var chunkIndex = 0;
       while (availableBytes > 0)
       {
-        var actions = new List<IAction>();
         var readCount = availableBytes < bufferSize
           ? (int)availableBytes
           : bufferSize;
+        
+        var actions = new List<IAction>
+        {
+          new ReadAction(fileLength - availableBytes, readCount, _inputChunkCollection, inputFilePath),
+          new CompressAction(_inputChunkCollection, _outputChunkCollection, _compressor.Compress),
+          new WriteAction(_inputChunkCollection, outputFilePath)
+        };
 
-        actions.Add(new ReadAction(fileLength - availableBytes, readCount, chunkIndex, _outputChunkCollection, inputFilePath));
-        actions.Add(new CompressAction(_inputChunkCollection, _outputChunkCollection, chunkIndex, inputFilePath, _compressor.Compress));
-        actions.Add(new WriteAction(_inputChunkCollection, chunkIndex, outputFilePath));
-
-        taskQueue.AddTask(new ActionPipeline(actions));
+        taskQueue.AddTask(new ActionPipeline(actions, chunkIndex));
 
         availableBytes -= readCount;
         chunkIndex++;
@@ -80,6 +88,13 @@ namespace ZipCompressor.App
       return taskQueue;
     }
 
+    /// <summary>
+    /// Create Task Queue for decompress
+    /// </summary>
+    /// <param name="inputFilePath"></param>
+    /// <param name="outputFilePath"></param>
+    /// <param name="bufferSize"></param>
+    /// <returns></returns>
     private TaskQueue CreateDecompressionTaskQueue(string inputFilePath, string outputFilePath, int bufferSize)
     {
       var taskQueue = new TaskQueue(Environment.ProcessorCount);
@@ -94,7 +109,6 @@ namespace ZipCompressor.App
         while (availableBytes > 0)
         {
           var gzipBlock = new List<byte>(bufferSize);
-          var actions = new List<IAction>();
 
           // GZip header.
           if (chunkIndex == 0) // Get first GZip header in the file. All internal gzip blocks have the same one.
@@ -134,11 +148,15 @@ namespace ZipCompressor.App
             if (gzipBlockStartPosition + gzipHeader.Length + gzipBlockLength == fileLength) // The last gzip block in a file.
               gzipBlockStartPosition += gzipHeader.Length;
           }
-          actions.Add(new ReadAction(gzipBlockStartPosition, gzipBlockLength,chunkIndex, _outputChunkCollection, inputFilePath));
-          actions.Add(new DecompressAction(_outputChunkCollection,_inputChunkCollection, chunkIndex, _compressor.Decompress));
-          actions.Add(new WriteAction(_inputChunkCollection, chunkIndex, outputFilePath));
 
-          taskQueue.AddTask(new ActionPipeline(actions));
+          var actions = new List<IAction>
+          {
+            new ReadAction(gzipBlockStartPosition, gzipBlockLength, _inputChunkCollection, inputFilePath),
+            new DecompressAction(_outputChunkCollection, _inputChunkCollection, _compressor.Decompress),
+            new WriteAction(_inputChunkCollection, outputFilePath)
+          };
+
+          taskQueue.AddTask(new ActionPipeline(actions, chunkIndex));
 
           chunkIndex++;
         }

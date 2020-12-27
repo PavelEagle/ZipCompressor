@@ -3,7 +3,6 @@
   public enum Commands
   {
     Compress,
-    Decompress,
-    Create
+    Decompress
   }
 }
