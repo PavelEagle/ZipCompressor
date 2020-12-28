@@ -5,16 +5,16 @@ namespace ZipCompressor.Common
 {
   public struct CommandOptions
   {
-    public CommandOptions(Commands mode, string inputFileName, string outputFileName)
+    public CommandOptions(Commands mode, string inputFilePath, string outputFilePath)
     {
       Mode = mode;
-      InputFileName = inputFileName;
-      OutputFileName = outputFileName;
+      InputFilePath = inputFilePath;
+      OutputFilePath = outputFilePath;
     }
 
     public Commands Mode { get; }
-    public string InputFileName { get; }
-    public string OutputFileName { get; }
+    public string InputFilePath { get; }
+    public string OutputFilePath { get; }
 
     /// <summary>
     /// Parse input command line arguments.
@@ -28,8 +28,8 @@ namespace ZipCompressor.Common
         throw new ArgumentException("You need to enter three commands like: compress/decompress inputFilePath outputFilePath");
 
       var operationString = args[Constants.OperationArgNumber];
-      var inputFileName = args[Constants.InputFilePathArgNumber]; 
-      var outputFileName = args[Constants.OutputFilePathArgNumber];
+      var inputFilePath = args[Constants.InputFilePathArgNumber]; 
+      var outputFilePath = args[Constants.OutputFilePathArgNumber];
 
       var operation = (operationString.Substring(0, 1).ToUpper() + operationString[1..].ToLower()) switch
       {
@@ -38,18 +38,18 @@ namespace ZipCompressor.Common
         _ => throw new ArgumentException($"Unsupported command: {operationString}. Supported operations list: compress, decompress."),
       };
 
-      if (string.IsNullOrEmpty(inputFileName) || inputFileName.IndexOfAny(Path.GetInvalidPathChars()) != -1)
-        throw new ArgumentException($"Incorrect input file path: {inputFileName}");
-      if (!File.Exists(inputFileName))
-        throw new ArgumentException($"Input file is not exists: {inputFileName}");
+      if (string.IsNullOrEmpty(inputFilePath) || inputFilePath.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+        throw new ArgumentException($"Incorrect input file path: {inputFilePath}");
+      if (!File.Exists(inputFilePath))
+        throw new ArgumentException($"Input file is not exists: {inputFilePath}");
 
-      if (string.IsNullOrEmpty(inputFileName) || outputFileName.IndexOfAny(Path.GetInvalidPathChars()) != -1)
-        throw new ArgumentException($"Incorrect input file path: {outputFileName}");
-      if (File.Exists(outputFileName))
+      if (string.IsNullOrEmpty(inputFilePath) || outputFilePath.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+        throw new ArgumentException($"Incorrect input file path: {outputFilePath}");
+      if (File.Exists(outputFilePath))
       {
-        outputFileName = GeneratePath(outputFileName);
+        outputFilePath = GeneratePath(outputFilePath);
       }
-      return new CommandOptions(operation, inputFileName, outputFileName);
+      return new CommandOptions(operation, inputFilePath, outputFilePath);
     }
 
     private static string GeneratePath(string filePath)

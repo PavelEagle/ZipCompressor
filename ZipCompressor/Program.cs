@@ -11,10 +11,11 @@ namespace ZipCompressor
   {
     static void Main(string[] args)
     {
-      //FileCreator.CreateDummyFile(@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", 100000000);
+
 #if DEBUG
-      var test = new [] { "decompress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.gz", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\111.txt" };
-      //var test = new [] { "compress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.gz" };
+      //FileCreator.CreateDummyFile(@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", 100000000);
+      //var test = new[] { "decompress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test33.txt" };
+      var test = new[] { "compress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz" };
 #endif
 
       var zipCompressor = new ZipApplication(CommandOptions.Create(test), new GZipCompressor());
@@ -51,11 +52,9 @@ namespace ZipCompressor
 
       zipAppThread.Start();
 
-      using (var spinner = new ConsoleSpinner())
-      {
-        while (zipAppThread.IsAlive)
-          spinner.Turn();
-      }
+      using var spinner = new ConsoleSpinner();
+      while (zipAppThread.IsAlive)
+        spinner.Turn();
     }
   }
 }

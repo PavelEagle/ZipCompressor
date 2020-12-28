@@ -20,12 +20,11 @@ namespace ZipCompressor.App.Actions
 
     public void Execute(int chunkIndex)
     {
-      using (var reader = new BinaryReader(File.Open(_inputFileName, FileMode.Open, FileAccess.Read, FileShare.Read)))
-      {
-        reader.BaseStream.Seek(_startPosition, SeekOrigin.Begin);
-        var bytes = reader.ReadBytes(_bytesCount);
-        _inputHolder.Add(chunkIndex, bytes);
-      }
+      using var reader = new BinaryReader(File.Open(_inputFileName, FileMode.Open, FileAccess.Read, FileShare.Read));
+
+      reader.BaseStream.Seek(_startPosition, SeekOrigin.Begin);
+      var bytes = reader.ReadBytes(_bytesCount);
+      _inputHolder.Add(chunkIndex, bytes);
     }
   }
 }

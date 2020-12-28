@@ -3,35 +3,29 @@ using System.IO.Compression;
 
 namespace ZipCompressor.App.BaseCompressor
 {
-  class GZipCompressor: IArchiver
+  class GZipCompressor : IArchiver
   {
     public byte[] Compress(byte[] originalBytes)
     {
-      using (var output = new MemoryStream())
-      {
-        using (var compressStream = new GZipStream(output, CompressionMode.Compress))
-        {
-          compressStream.Write(originalBytes, 0, originalBytes.Length);
-        }
+      using var outStream = new MemoryStream();
+      using var gZipStream = new GZipStream(outStream, CompressionMode.Compress);
 
-        return output.ToArray();
-      }
+      gZipStream.Write(originalBytes, 0, originalBytes.Length);
+
+      return outStream.ToArray();
     }
 
     public byte[] Decompress(byte[] compressedBytes)
     {
-      using (var output = new MemoryStream())
-      {
-        using (var input = new MemoryStream(compressedBytes))
-        {
-          using (var decompressStream = new GZipStream(input, CompressionMode.Decompress))
-          {
-            decompressStream.CopyTo(output);
-          }
+      using var inputStream = new MemoryStream(compressedBytes);
+      using var gZipStream = new GZipStream(inputStream, CompressionMode.Decompress);
+      using var outStream = new MemoryStream();
 
-          return output.ToArray();
-        }
-      }
+      gZipStream.CopyTo(outStream);
+
+      return outStream.ToArray();
     }
+
   }
 }
+

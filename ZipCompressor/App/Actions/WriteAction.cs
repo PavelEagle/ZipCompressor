@@ -17,7 +17,6 @@ namespace ZipCompressor.App.Actions
 
     public void Execute(int chunkIndex)
     {
-
       if (chunkIndex == 0)
         _nextWriteChunk = 0; // TODO Reset on a new file processing.
 
