@@ -1,7 +1,9 @@
-﻿namespace ZipCompressor.App.Actions
+﻿using System.Threading;
+
+namespace ZipCompressor.App.Actions
 {
   public interface IAction
   {
-    void Execute(int chunkIndex);
+    void Process(CancellationToken token);
   }
 }

@@ -1,60 +1,53 @@
 ﻿using System;
-using System.Threading;
+using Serilog;
+using Serilog.Events;
 using ZipCompressor.App;
-using ZipCompressor.App.BaseCompressor;
 using ZipCompressor.Common;
-using ZipCompressor.Services;
 
 namespace ZipCompressor
 {
   class Program
   {
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
 
 #if DEBUG
-      //FileCreator.CreateDummyFile(@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test.txt", 100000000);
-      //var test = new[] { "decompress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test33.txt" };
-      var test = new[] { "compress", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt", @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz" };
+      args = new[]
+      {
+        "decompress", 
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz",
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3-orig.txt"
+      };
 #endif
-
-      var zipCompressor = new ZipApplication(CommandOptions.Create(test), new GZipCompressor());
 
       Console.WriteLine($"Count of cores: {Environment.ProcessorCount}");
-      Console.WriteLine("Start...");
+
+      Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .WriteTo.Console(LogEventLevel.Debug)
+        .CreateLogger();
+
+      var app = new Application(CommandOptions.Create(args));
+
       try
       {
-        Run(zipCompressor);
+        var task = app.Start();
+        Console.CancelKeyPress += (_, cancelEventArgs) =>
+        {
+          cancelEventArgs.Cancel = true;
+          task.Abort();
+        };
+
+        task.Wait();
+        Log.Information("Execution finished " +
+                        (task.IsErrorOccured ? "with errors or was aborted" : "successfully"));
+        return task.IsErrorOccured ? ApplicationConstants.Error : ApplicationConstants.Success;
       }
-      catch 
+      catch (Exception e)
       {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Error.WriteLine(Constants.UnsuccessfulExecution);
-        Environment.Exit(Constants.ErrorExitCode);
+        Log.Error(e.Message);
+        return ApplicationConstants.Error;
       }
-#if DEBUG
-      finally
-      {
-        Console.ReadLine();
-      }
-#endif
-
-      Console.ForegroundColor = ConsoleColor.Green;
-      Console.WriteLine(Constants.SuccessfulExecution);
-      Console.ForegroundColor = ConsoleColor.White;
-
-      Environment.Exit(Constants.SuccessExitCode);
-    }
-
-    public static void Run(ZipApplication archiver)
-    {
-      var zipAppThread = new Thread(archiver.StartProcess);
-
-      zipAppThread.Start();
-
-      using var spinner = new ConsoleSpinner();
-      while (zipAppThread.IsAlive)
-        spinner.Turn();
     }
   }
 }

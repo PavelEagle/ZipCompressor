@@ -5,14 +5,14 @@ namespace ZipCompressor.Common
 {
   public struct CommandOptions
   {
-    public CommandOptions(Commands mode, string inputFilePath, string outputFilePath)
+    public CommandOptions(ArchiveModes mode, string inputFilePath, string outputFilePath)
     {
       Mode = mode;
       InputFilePath = inputFilePath;
       OutputFilePath = outputFilePath;
     }
 
-    public Commands Mode { get; }
+    public ArchiveModes Mode { get; }
     public string InputFilePath { get; }
     public string OutputFilePath { get; }
 
@@ -27,14 +27,14 @@ namespace ZipCompressor.Common
       if (args == null || args.Length != 3)
         throw new ArgumentException("You need to enter three commands like: compress/decompress inputFilePath outputFilePath");
 
-      var operationString = args[Constants.OperationArgNumber];
-      var inputFilePath = args[Constants.InputFilePathArgNumber]; 
-      var outputFilePath = args[Constants.OutputFilePathArgNumber];
+      var operationString = args[ApplicationConstants.OperationArgNumber];
+      var inputFilePath = args[ApplicationConstants.InputFilePathArgNumber]; 
+      var outputFilePath = args[ApplicationConstants.OutputFilePathArgNumber];
 
       var operation = (operationString.Substring(0, 1).ToUpper() + operationString[1..].ToLower()) switch
       {
-        nameof(Commands.Compress) => Commands.Compress,
-        nameof(Commands.Decompress) => Commands.Decompress,
+        nameof(ArchiveModes.Compress) => ArchiveModes.Compress,
+        nameof(ArchiveModes.Decompress) => ArchiveModes.Decompress,
         _ => throw new ArgumentException($"Unsupported command: {operationString}. Supported operations list: compress, decompress."),
       };
 
