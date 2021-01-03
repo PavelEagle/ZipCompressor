@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Threading;
 
-namespace ZipCompressor.App.Actions
+namespace ZipCompressor.App.Actions.Read
 {
   public interface IReadAction
   {

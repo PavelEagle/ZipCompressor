@@ -9,62 +9,64 @@ namespace ZipCompressor.App
   public class Executor
   {
     private WaitHandle[] _waitHandles;
+    private readonly Action[] _actions;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly Stopwatch _timer = new Stopwatch();
 
-    private Executor(CancellationTokenSource cancellationTokenSource)
+    public Executor(Action[] actions, CancellationTokenSource cancellationTokenSource)
     {
+      _actions = actions;
       _cancellationTokenSource = cancellationTokenSource;
       _timer.Start();
     }
-
-    public bool IsErrorOccured { get; private set; }
-
-    public static Executor StartInParallel(Action[] actions, CancellationTokenSource cancellationTokenSource)
+    
+    public void Start()
     {
-      var task = new Executor(cancellationTokenSource);
-      var handlesList = new List<WaitHandle>(actions.Length);
-      foreach (var action in actions)
-      {
-        var handle = new EventWaitHandle(false, EventResetMode.ManualReset);
-        var thread = new Thread(() =>
-        {
-          try
-          {
-            action();
-          }
-          //catch (Exception ex)
-          //{
-          //  Console.WriteLine(ex.Message);
-          //  task.Abort();
-          //}
-          finally
-          {
-            handle.Set();
-          }
-        });
+      var handlesList = new List<WaitHandle>(_actions.Length);
 
-        handlesList.Add(handle);
-        thread.Start();
+      foreach (var action in _actions)
+      {
+        CreateNewThread(action, handlesList);
       }
 
-      task._waitHandles = handlesList.ToArray();
-      return task;
+      _waitHandles = handlesList.ToArray();
+    }
+
+    private static void CreateNewThread(Action action, ICollection<WaitHandle> manualResetEvents)
+    {
+      var handle = new ManualResetEvent(false);
+      var thread = new Thread(() =>
+      {
+        try
+        {
+          action();
+        }
+        //catch (Exception ex)
+        //{
+        //  Console.WriteLine(ex.Message);
+        //  task.Abort();
+        //}
+        finally
+        {
+          handle.Set();
+        }
+      });
+
+      manualResetEvents.Add(handle);
+      thread.Start();
     }
 
     public void Wait()
     {
       WaitHandle.WaitAll(_waitHandles);
       _timer.Stop();
-      Log.Debug("");
-      Log.Debug($"Task finished in {_timer.Elapsed}");
+      Log.Information($"Task finished in {_timer.Elapsed}");
     }
 
     public void Abort()
     {
       Log.Error("Aborting ...");
       _cancellationTokenSource.Cancel();
-      IsErrorOccured = true;
     }
   }
 }

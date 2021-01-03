@@ -3,7 +3,7 @@ using System.IO;
 using System.Threading;
 using Serilog;
 
-namespace ZipCompressor.App.Actions
+namespace ZipCompressor.App.Actions.Read
 {
   public class DecompressChunkReader: IReadAction
   {
@@ -19,7 +19,7 @@ namespace ZipCompressor.App.Actions
     public void Read(Stream inputStream, CancellationToken token)
     {
       _inputQueue.Open();
-      var lengthBuffer = new byte[sizeof(int)];
+      var lengthBuffer = new byte[4];
       var buffer = new byte[0];
       var maxChunkLength = 0;
       var index = 0;
@@ -43,7 +43,7 @@ namespace ZipCompressor.App.Actions
 
           if (chunkLength > maxChunkLength)
           {
-            Log.Information($"Increasing reading buffer to {chunkLength}");
+            Log.Debug($"Increasing reading buffer to {chunkLength}");
             maxChunkLength = chunkLength;
             buffer = new byte[maxChunkLength];
           }
@@ -57,7 +57,7 @@ namespace ZipCompressor.App.Actions
           var chunkBytes = new byte[chunkLength];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
           _inputQueue.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
-          Log.Information($"Read compressed chunk #{index} of {chunkLength} bytes");
+          Log.Debug($"Read compressed chunk #{index} of {chunkLength} bytes");
           index++;
         }
 

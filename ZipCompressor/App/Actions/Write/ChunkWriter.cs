@@ -5,9 +5,9 @@ using System.Linq;
 using System.Threading;
 using Serilog;
 
-namespace ZipCompressor.App.Actions
+namespace ZipCompressor.App.Actions.Write
 {
-  public class ChunksWriter
+  public class ChunksWriter: IWriteAction
   {
     private readonly ChunkQueue _outputQueue;
 
@@ -16,7 +16,7 @@ namespace ZipCompressor.App.Actions
       _outputQueue = outputQueue;
     }
 
-    public void WriteToStream(Stream outputStream,
+    public void Write(Stream outputStream,
         CancellationToken token,
         int expectedChunksCount,
         bool writeChunksLengths = false)
@@ -28,7 +28,7 @@ namespace ZipCompressor.App.Actions
         try
         {
           var chunk = _outputQueue.Read(token);
-          Log.Information($"Requested to write chunk #{chunk.Index}, expecting #{index}");
+          Log.Debug($"Requested to write chunk #{chunk.Index}, expecting #{index}");
           if (chunk.Index != index)
           {
             unorderedChunks.Add(chunk);
@@ -44,9 +44,9 @@ namespace ZipCompressor.App.Actions
             index++;
           }
         }
-        catch (Exception)//TODO exception
+        catch (PipeClosedException)//TODO exception
         {
-          Log.Information("Writing complete");
+          Log.Debug("Writing complete");
           outputStream.Flush();
           if (unorderedChunks.Count > 0)
           {
@@ -60,11 +60,11 @@ namespace ZipCompressor.App.Actions
 
           break;
         }
-        //catch (Exception e)
-        //{
-        //  _logger.WriteError("Writer failed with error: " + e.Message);
-        //  throw;
-        //}
+        catch (Exception e)
+        {
+          Log.Debug("Writer failed with error: " + e.Message);
+          throw;
+        }
       }
     }
 
@@ -76,7 +76,7 @@ namespace ZipCompressor.App.Actions
         return;
       }
 
-      Log.Information($"Writing chunk #{chunk.Index} of {chunk.Bytes.Length} bytes");
+      Log.Debug($"Writing chunk #{chunk.Index} of {chunk.Bytes.Length} bytes");
       if (writeChunksLengths)
       {
         outputStream.Write(BitConverter.GetBytes(chunk.Bytes.Length), 0, sizeof(int));

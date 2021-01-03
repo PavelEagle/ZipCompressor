@@ -1,9 +1,9 @@
-﻿using Serilog;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
+using Serilog;
 
-namespace ZipCompressor.App.Actions
+namespace ZipCompressor.App.Actions.Read
 {
   public class CompressChunkReader: IReadAction
   {
@@ -31,7 +31,7 @@ namespace ZipCompressor.App.Actions
           var chunkBytes = new byte[bytesRead];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
           _pipe.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
-          Log.Information($"Read chunk #{index}");
+          Log.Debug($"Read chunk #{index}");
           index++;
         }
 
