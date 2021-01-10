@@ -8,6 +8,5 @@ namespace ZipCompressor.App.Archiver
     void Read(Stream inputStream, CancellationToken token);
     void StartZipAction(CancellationToken token);
     void Write(Stream outputStream, CancellationToken token, int expectedChunksCount, bool writeChunksLengths);
-
   }
 }

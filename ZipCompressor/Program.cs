@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using ZipCompressor.App;
 using ZipCompressor.Common;
+using ZipCompressor.Services;
 
 namespace ZipCompressor
 {
@@ -15,6 +16,9 @@ namespace ZipCompressor
 #if DEBUG
       args = new[]
       {
+        //"decompress",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\0.gz",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\0-orig.txt"
         "compress",
         @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt",
         @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz"
@@ -26,28 +30,26 @@ namespace ZipCompressor
         .WriteTo.Console(Debugger.IsAttached ? LogEventLevel.Debug : LogEventLevel.Information)
         .CreateLogger();
 
-      Log.Information($"Count of cores: {Environment.ProcessorCount}");
-      
-      using (var app = new ZipApplication(CommandOptions.Create(args)))
-      {
-        try
-        {
-          app.Start();
-          Console.CancelKeyPress += (obj, e) =>
-          {
-            app.Stop();
-            e.Cancel = true;
-          };
+      SystemInfo.GetSystemInfo();
+      SystemInfo.GetCountOfCores();
 
-          Log.Information("Execution finished " +
-                          (app.IsErrorOccured ? "with errors or was aborted" : "successfully"));
-          Environment.Exit(app.IsErrorOccured ? ApplicationConstants.Error : ApplicationConstants.Success);
-        }
-        catch (Exception e)
+      using var app = new ZipApplication(Options.Validation(args));
+      try
+      {
+        app.Start();
+        Console.CancelKeyPress += (obj, e) =>
         {
-          Log.Error(e.Message);
-          Environment.Exit(ApplicationConstants.Error); 
-        }
+          app.Stop();
+          e.Cancel = true;
+        };
+
+        Log.Information(app.IsAborted ? "Application has failed" : "Application completed successfully");
+        Environment.Exit(app.IsAborted ? ApplicationConstants.Error : ApplicationConstants.Success);
+      }
+      catch (Exception e)
+      {
+        Log.Error(e.Message);
+        Environment.Exit(ApplicationConstants.Error); 
       }
     }
   }

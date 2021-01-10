@@ -1,45 +1,35 @@
 ﻿using System;
 using System.Management;
-using Microsoft.Win32;
+using Serilog;
 
 namespace ZipCompressor.Services
 {
   public class SystemInfo
   {
-    public static void getOperatingSystemInfo()
+    public static void GetSystemInfo()
     {
-      Console.WriteLine("Displaying operating system info....\n");
-      //Create an object of ManagementObjectSearcher class and pass query as parameter.
-      ManagementObjectSearcher mos = new ManagementObjectSearcher("select * from Win32_OperatingSystem");
-      foreach (ManagementObject managementObject in mos.Get())
+      Log.Information("Displaying operating system info....");
+      var managementObjects = new ManagementObjectSearcher("select * from Win32_OperatingSystem");
+      foreach (var managementObject in managementObjects.Get())
       {
         if (managementObject["Caption"] != null)
         {
-          Console.WriteLine("Operating System Name  :  " + managementObject["Caption"].ToString());   //Display operating system caption
+          Log.Information("Operating System Name  :  " + managementObject["Caption"]);   //Display operating system caption
         }
         if (managementObject["OSArchitecture"] != null)
         {
-          Console.WriteLine("Operating System Architecture  :  " + managementObject["OSArchitecture"].ToString());   //Display operating system architecture.
+          Log.Information("Operating System Architecture  :  " + managementObject["OSArchitecture"]);   //Display operating system architecture.
         }
         if (managementObject["CSDVersion"] != null)
         {
-          Console.WriteLine("Operating System Service Pack   :  " + managementObject["CSDVersion"].ToString());     //Display operating system version.
+          Log.Information("Operating System Service Pack   :  " + managementObject["CSDVersion"]);     //Display operating system version.
         }
       }
     }
 
-    public static void getProcessorInfo()
+    public static void GetCountOfCores()
     {
-      Console.WriteLine("\n\nDisplaying Processor Name....");
-      RegistryKey processor_name = Registry.LocalMachine.OpenSubKey(@"Hardware\Description\System\CentralProcessor\0", RegistryKeyPermissionCheck.ReadSubTree);   //This registry entry contains entry for processor info.
-
-      if (processor_name != null)
-      {
-        if (processor_name.GetValue("ProcessorNameString") != null)
-        {
-          Console.WriteLine(processor_name.GetValue("ProcessorNameString"));   //Display processor ingo.
-        }
-      }
+      Log.Information($"Count of cores: {Environment.ProcessorCount}");
     }
   }
 }

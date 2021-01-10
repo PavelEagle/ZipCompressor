@@ -18,7 +18,7 @@ namespace ZipCompressor.App.Actions.Read
 
     public void Read(Stream inputStream, CancellationToken token)
     {
-      _inputQueue.Open();
+      _inputQueue.Connect();
       var lengthBuffer = new byte[4];
       var buffer = new byte[0];
       var maxChunkLength = 0;
@@ -27,23 +27,21 @@ namespace ZipCompressor.App.Actions.Read
       try
       {
         int bytesRead;
-        while (!token.IsCancellationRequested &&
-               (bytesRead = inputStream.Read(lengthBuffer, 0, lengthBuffer.Length)) > 0)
+        while (!token.IsCancellationRequested && (bytesRead = inputStream.Read(lengthBuffer, 0, lengthBuffer.Length)) > 0)
         {
           if (bytesRead < lengthBuffer.Length)
           {
-            throw new Exception(); //TODO exception
+            throw new Exception("Read was Corrupted");
           }
 
           var chunkLength = BitConverter.ToInt32(lengthBuffer, 0);
           if (chunkLength < 0 || chunkLength > _chunkSize * 10)
           {
-            throw new Exception(); //TODO exception
+            throw new Exception("Read was Corrupted");
           }
 
           if (chunkLength > maxChunkLength)
           {
-            Log.Debug($"Increasing reading buffer to {chunkLength}");
             maxChunkLength = chunkLength;
             buffer = new byte[maxChunkLength];
           }
@@ -51,13 +49,13 @@ namespace ZipCompressor.App.Actions.Read
           bytesRead = inputStream.Read(buffer, 0, chunkLength);
           if (bytesRead != chunkLength)
           {
-            throw new Exception(); //TODO exception
+            throw new Exception("Read was Corrupted");
           }
 
           var chunkBytes = new byte[chunkLength];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
           _inputQueue.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
-          Log.Debug($"Read compressed chunk #{index} of {chunkLength} bytes");
+          Log.Debug($"Reading chunk #{index}");
           index++;
         }
 
@@ -65,7 +63,7 @@ namespace ZipCompressor.App.Actions.Read
       }
       catch (Exception e)
       {
-        Log.Error("Archive reading failed with error: " + e.Message);
+        Log.Error("Reading failed: " + e.Message);
         _inputQueue.Close();
         throw;
       }

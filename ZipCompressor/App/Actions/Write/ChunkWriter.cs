@@ -16,10 +16,7 @@ namespace ZipCompressor.App.Actions.Write
       _outputQueue = outputQueue;
     }
 
-    public void Write(Stream outputStream,
-        CancellationToken token,
-        int expectedChunksCount,
-        bool writeChunksLengths = false)
+    public void Write(Stream outputStream, CancellationToken token, int expectedChunksCount, bool writeChunksLengths = false)
     {
       var index = 0;
       var unorderedChunks = new List<Chunk>();
@@ -28,7 +25,6 @@ namespace ZipCompressor.App.Actions.Write
         try
         {
           var chunk = _outputQueue.Read(token);
-          Log.Debug($"Requested to write chunk #{chunk.Index}, expecting #{index}");
           if (chunk.Index != index)
           {
             unorderedChunks.Add(chunk);
@@ -44,20 +40,8 @@ namespace ZipCompressor.App.Actions.Write
             index++;
           }
         }
-        catch (PipeClosedException)//TODO exception
+        catch (PipeClosedException) //TODO exception
         {
-          Log.Debug("Writing complete");
-          outputStream.Flush();
-          if (unorderedChunks.Count > 0)
-          {
-            throw new Exception("Some chunks were missing and some are left");
-          }
-
-          if (index != expectedChunksCount)
-          {
-            throw new Exception(); //TODO exception
-          }
-
           break;
         }
         catch (Exception e)
@@ -66,17 +50,22 @@ namespace ZipCompressor.App.Actions.Write
           throw;
         }
       }
+      Log.Debug("Writing complete");
+      outputStream.Flush();
+      if (unorderedChunks.Count > 0 || index != expectedChunksCount)
+      {
+        throw new Exception("Some chunks were missing");
+      }
     }
 
-    private void WriteChunk(
-        Stream outputStream, Chunk chunk, CancellationToken token, bool writeChunksLengths)
+    private void WriteChunk(Stream outputStream, Chunk chunk, CancellationToken token, bool writeChunksLengths)
     {
       if (token.IsCancellationRequested)
       {
         return;
       }
 
-      Log.Debug($"Writing chunk #{chunk.Index} of {chunk.Bytes.Length} bytes");
+      Log.Debug($"Writing chunk #{chunk.Index}");
       if (writeChunksLengths)
       {
         outputStream.Write(BitConverter.GetBytes(chunk.Bytes.Length), 0, sizeof(int));

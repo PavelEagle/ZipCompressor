@@ -32,7 +32,7 @@ namespace ZipCompressor.App
       _waitHandles = handlesList.ToArray();
     }
 
-    private static void CreateNewThread(Action action, ICollection<WaitHandle> manualResetEvents)
+    private void CreateNewThread(Action action, ICollection<WaitHandle> manualResetEvents)
     {
       var handle = new ManualResetEvent(false);
       var thread = new Thread(() =>
@@ -41,11 +41,11 @@ namespace ZipCompressor.App
         {
           action();
         }
-        //catch (Exception ex)
-        //{
-        //  Console.WriteLine(ex.Message);
-        //  task.Abort();
-        //}
+        catch (Exception ex)
+        {
+          Log.Error(ex.Message);
+          Abort();
+        }
         finally
         {
           handle.Set();

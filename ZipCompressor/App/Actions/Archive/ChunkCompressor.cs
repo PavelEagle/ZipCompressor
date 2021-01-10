@@ -19,20 +19,19 @@ namespace ZipCompressor.App.Actions.Archive
 
     public void StartZipAction(CancellationToken token)
     {
-      _outputQueue.Open();
-      var processedStream = new MemoryStream();
+      _outputQueue.Connect();
+
       while (!token.IsCancellationRequested)
       {
         try
         {
           var chunk = _inputQueue.Read(token);
-          using (var gzipStream = new GZipStream(processedStream, CompressionMode.Compress, leaveOpen: true))
-          {
-            gzipStream.Write(chunk.Bytes, 0, chunk.Bytes.Length);
-          }
+          using var processedStream = new MemoryStream();
+          using var gzipStream = new GZipStream(processedStream, CompressionMode.Compress, true);
+          gzipStream.Write(chunk.Bytes, 0, chunk.Bytes.Length);
 
           var processedBytes = processedStream.ToArray();
-          _outputQueue.Write(new Chunk { Bytes = processedBytes, Index = chunk.Index }, token);
+          _outputQueue.Write(new Chunk {Bytes = processedBytes, Index = chunk.Index}, token);
           processedStream.Position = 0;
           processedStream.SetLength(0);
           Log.Debug($"Compressed chunk #{chunk.Index} from {chunk.Bytes.Length} bytes to {processedBytes.Length}");

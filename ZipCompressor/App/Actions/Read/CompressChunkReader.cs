@@ -7,41 +7,40 @@ namespace ZipCompressor.App.Actions.Read
 {
   public class CompressChunkReader: IReadAction
   {
-    private readonly ChunkQueue _pipe;
-    private readonly int _inputQueue;
+    private readonly ChunkQueue _inputQueue; 
+    private readonly int _chunkSize;
 
     public CompressChunkReader(ChunkQueue inputQueue, int chunkSize)
     {
-      _pipe = inputQueue;
-      _inputQueue = chunkSize;
+      _inputQueue = inputQueue;
+      _chunkSize = chunkSize;
     }
 
     public void Read(Stream inputStream, CancellationToken token)
     {
-      _pipe.Open();
-      var buffer = new byte[_inputQueue];
+      _inputQueue.Connect();
+      var buffer = new byte[_chunkSize];
       var index = 0;
 
       try
       {
         int bytesRead;
-        while (!token.IsCancellationRequested &&
-               (bytesRead = inputStream.Read(buffer, 0, _inputQueue)) > 0)
+        while (!token.IsCancellationRequested && (bytesRead = inputStream.Read(buffer, 0, _chunkSize)) > 0)
         {
           var chunkBytes = new byte[bytesRead];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
-          _pipe.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
-          Log.Debug($"Read chunk #{index}");
+          _inputQueue.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
+          Log.Debug($"Reading chunk #{index}");
           index++;
         }
 
         Log.Information("Reading complete");
-        _pipe.Close();
+        _inputQueue.Close();
       }
       catch (Exception e)
       {
-        Log.Error("Reading failed with error: " + e.Message);
-        _pipe.Close();
+        Log.Error("Reading failed: " + e.Message);
+        _inputQueue.Close();
         throw;
       }
     }

@@ -1,6 +1,6 @@
 ﻿namespace ZipCompressor.Common
 {
-  public enum ArchiveModes
+  public enum ArchiveActions: byte
   {
     Compress,
     Decompress

@@ -8,7 +8,8 @@ namespace ZipCompressor.App
     private readonly Queue<Chunk> _queue = new Queue<Chunk>();
     private readonly SemaphoreSlim _readSemaphore;
     private readonly SemaphoreSlim _writeSemaphore;
-    private int _registeredWriters;
+    private readonly object _lock = new object();
+    private int _activeWriters;
     private bool _wasEverOpened;
 
     public ChunkQueue(int maxElements)
@@ -19,9 +20,23 @@ namespace ZipCompressor.App
 
     public Chunk Read(CancellationToken token)
     {
-      AcquireReadLock(token);
+
+      while (true)
+      {
+        if (_activeWriters == 0 && _wasEverOpened)
+          throw new PipeClosedException();
+
+        _readSemaphore.Wait(250, token);
+        lock (_lock)
+        {
+          if (_queue.Count == 0)
+            continue;
+        }
+
+        break;
+      }
       _writeSemaphore.Release();
-      lock (_queue)
+      lock (_lock)
       {
         return _queue.Dequeue();
       }
@@ -29,8 +44,8 @@ namespace ZipCompressor.App
 
     public void Write(Chunk chunk, CancellationToken token)
     {
-      _writeSemaphore.Wait(int.MaxValue, token);
-      lock (_queue)
+      _writeSemaphore.Wait(30000, token);
+      lock (_lock)
       {
         _queue.Enqueue(chunk);
       }
@@ -38,36 +53,22 @@ namespace ZipCompressor.App
       _readSemaphore.Release();
     }
 
-    public void Open()
+    public void Connect()
     {
-      Interlocked.Increment(ref _registeredWriters);
       _wasEverOpened = true;
+      Interlocked.Increment(ref _activeWriters);
     }
 
     public void Close()
     {
-      Interlocked.Decrement(ref _registeredWriters);
+      Interlocked.Decrement(ref _activeWriters);
     }
 
-    private void AcquireReadLock(CancellationToken token)
+    public void Clear()
     {
-      while (true)
+      lock (_lock)
       {
-        _readSemaphore.Wait(500, token);
-        lock (_queue)
-        {
-          if (_queue.Count == 0)
-          {
-            if (_registeredWriters == 0 && _wasEverOpened)
-            {
-              throw new PipeClosedException();
-            }
-
-            continue;
-          }
-        }
-
-        break;
+        _queue.Clear();
       }
     }
   }

@@ -14,27 +14,26 @@ namespace ZipCompressor.App.Archiver
     private readonly IArchiveAction _archiveAction;
     private readonly IWriteAction _writeAction;
 
-    public GipArchiver(IReadAction readAction, IArchiveAction archiveAction, IWriteAction writeAction)
+    private GipArchiver(IReadAction readAction, IArchiveAction archiveAction, IWriteAction writeAction)
     {
       _readAction = readAction;
       _archiveAction = archiveAction;
       _writeAction = writeAction;
     }
 
-    public static GipArchiver Create(ChunkQueue inputQueue, ChunkQueue outputQueue, CommandOptions options)
+    public static GipArchiver Create(ChunkQueue inputQueue, ChunkQueue outputQueue, ArchiveActions action)
     {
       IWriteAction writer = new ChunksWriter(outputQueue);
       IReadAction reader;
       IArchiveAction archiverAction;
 
-      switch (options.Mode)
+      switch (action)
       {
-        case ArchiveModes.Compress:
+        case ArchiveActions.Compress:
           reader = new CompressChunkReader(inputQueue, ApplicationConstants.DefaultByteBufferSize);
           archiverAction = new ChunkCompressor(inputQueue, outputQueue);
           break;
-
-        case ArchiveModes.Decompress:
+        case ArchiveActions.Decompress:
           reader = new DecompressChunkReader(inputQueue, ApplicationConstants.DefaultByteBufferSize);
           archiverAction = new ChunkDecompressor(inputQueue, outputQueue);
           break;
