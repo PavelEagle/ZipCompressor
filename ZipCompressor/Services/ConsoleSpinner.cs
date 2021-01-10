@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Serilog;
 
 namespace ZipCompressor.Services
 {
@@ -24,7 +25,7 @@ namespace ZipCompressor.Services
 
       var counterValue = _counter % 4;
 
-      var fullMessage = _sequence[counterValue];
+      var fullMessage = "Processing " + _sequence[counterValue];
       var msgLength = fullMessage.Length;
 
       Console.Write(fullMessage);

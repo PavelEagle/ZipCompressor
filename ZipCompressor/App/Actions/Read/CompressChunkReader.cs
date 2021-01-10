@@ -5,7 +5,7 @@ using Serilog;
 
 namespace ZipCompressor.App.Actions.Read
 {
-  public class CompressChunkReader: IReadAction
+  public sealed class CompressChunkReader: IReadAction
   {
     private readonly ChunkQueue _inputQueue; 
     private readonly int _chunkSize;
@@ -30,17 +30,17 @@ namespace ZipCompressor.App.Actions.Read
           var chunkBytes = new byte[bytesRead];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
           _inputQueue.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
-          Log.Debug($"Reading chunk #{index}");
+          Log.Debug($"Reading chunk {index}");
           index++;
         }
 
         Log.Information("Reading complete");
-        _inputQueue.Close();
+        _inputQueue.Disconnect();
       }
       catch (Exception e)
       {
         Log.Error("Reading failed: " + e.Message);
-        _inputQueue.Close();
+        _inputQueue.Clear();
         throw;
       }
     }

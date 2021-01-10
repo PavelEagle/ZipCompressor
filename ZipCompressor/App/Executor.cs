@@ -1,7 +1,6 @@
 ﻿using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 
 namespace ZipCompressor.App
@@ -11,15 +10,16 @@ namespace ZipCompressor.App
     private WaitHandle[] _waitHandles;
     private readonly Action[] _actions;
     private readonly CancellationTokenSource _cancellationTokenSource;
-    private readonly Stopwatch _timer = new Stopwatch();
 
     public Executor(Action[] actions, CancellationTokenSource cancellationTokenSource)
     {
       _actions = actions;
       _cancellationTokenSource = cancellationTokenSource;
-      _timer.Start();
     }
     
+    /// <summary>
+    /// Start multi-threading execute 
+    /// </summary>
     public void Start()
     {
       var handlesList = new List<WaitHandle>(_actions.Length);
@@ -59,8 +59,6 @@ namespace ZipCompressor.App
     public void Wait()
     {
       WaitHandle.WaitAll(_waitHandles);
-      _timer.Stop();
-      Log.Information($"Task finished in {_timer.Elapsed}");
     }
 
     public void Abort()

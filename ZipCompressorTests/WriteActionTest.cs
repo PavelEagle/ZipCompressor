@@ -26,10 +26,10 @@ namespace ZipCompressorTests
     {
       var maxElementsInChunk = 0;
 
-      var compressor = new ChunksWriter(_outputChunkQueue);
+      var chunkWriter = new ChunksWriter(_outputChunkQueue);
       using var outputStream = new MemoryStream();
 
-      compressor.Write(outputStream, _token, maxElementsInChunk);
+      chunkWriter.Write(outputStream, _token, maxElementsInChunk);
 
       var result = outputStream.ToArray();
 
@@ -48,17 +48,19 @@ namespace ZipCompressorTests
         new Chunk { Bytes = Encoding.ASCII.GetBytes("Test read this chunks"), Index = 2 }
       };
 
+      _outputChunkQueue.Connect();
       foreach (var chunk in chunkData)
       {
         _outputChunkQueue.Write(chunk, _token);
       }
 
-      var compressor = new ChunksWriter(_outputChunkQueue);
+      var chunkWriter = new ChunksWriter(_outputChunkQueue);
       using var outputStream = new MemoryStream();
 
-      compressor.Write(outputStream, _token, maxElementsInChunk);
+      chunkWriter.Write(outputStream, _token, maxElementsInChunk);
 
       var result = outputStream.ToArray();
+      _outputChunkQueue.Disconnect();
 
       var inputData = chunkData.Select(x => x.Bytes).Aggregate((a, b) => a.Concat(b).ToArray());
 

@@ -8,7 +8,7 @@ using ZipCompressor.Common;
 
 namespace ZipCompressor.App.Archiver
 {
-  public class GipArchiver: IArchiver
+  public sealed class GipArchiver: IArchiver
   {
     private readonly IReadAction _readAction;
     private readonly IArchiveAction _archiveAction;
@@ -21,6 +21,13 @@ namespace ZipCompressor.App.Archiver
       _writeAction = writeAction;
     }
 
+    /// <summary>
+    /// Create compressor or decompressor
+    /// </summary>
+    /// <param name="inputQueue"></param>
+    /// <param name="outputQueue"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
     public static GipArchiver Create(ChunkQueue inputQueue, ChunkQueue outputQueue, ArchiveActions action)
     {
       IWriteAction writer = new ChunksWriter(outputQueue);
@@ -34,7 +41,7 @@ namespace ZipCompressor.App.Archiver
           archiverAction = new ChunkCompressor(inputQueue, outputQueue);
           break;
         case ArchiveActions.Decompress:
-          reader = new DecompressChunkReader(inputQueue, ApplicationConstants.DefaultByteBufferSize);
+          reader = new DecompressChunkReader(inputQueue);
           archiverAction = new ChunkDecompressor(inputQueue, outputQueue);
           break;
         default:

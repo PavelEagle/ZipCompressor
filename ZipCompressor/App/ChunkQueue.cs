@@ -24,9 +24,9 @@ namespace ZipCompressor.App
       while (true)
       {
         if (_activeWriters == 0 && _wasEverOpened)
-          throw new PipeClosedException();
+          throw new ChunkQueueCompleted();
 
-        _readSemaphore.Wait(250, token);
+        _readSemaphore.Wait(400, token);
         lock (_lock)
         {
           if (_queue.Count == 0)
@@ -53,13 +53,19 @@ namespace ZipCompressor.App
       _readSemaphore.Release();
     }
 
+    /// <summary>
+    /// Connect to queue
+    /// </summary>
     public void Connect()
     {
       _wasEverOpened = true;
       Interlocked.Increment(ref _activeWriters);
     }
 
-    public void Close()
+    /// <summary>
+    /// Disconnect from queue
+    /// </summary>
+    public void Disconnect()
     {
       Interlocked.Decrement(ref _activeWriters);
     }

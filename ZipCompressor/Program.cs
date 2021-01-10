@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using Serilog;
 using Serilog.Events;
 using ZipCompressor.App;
@@ -12,16 +13,15 @@ namespace ZipCompressor
   {
     static void Main(string[] args)
     {
-
 #if DEBUG
       args = new[]
       {
-        //"decompress",
-        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\0.gz",
-        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\0-orig.txt"
-        "compress",
-        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt",
-        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz"
+        "decompress",
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz",
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3-orig.txt"
+        //"compress",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz"
       };
 #endif
 
@@ -33,23 +33,34 @@ namespace ZipCompressor
       SystemInfo.GetSystemInfo();
       SystemInfo.GetCountOfCores();
 
-      using var app = new ZipApplication(Options.Validation(args));
+      var app = new ZipApplication(Options.Validation(args));
       try
       {
-        app.Start();
+        var appThread = new Thread(() => app.Start());
+        appThread.Start();
+
         Console.CancelKeyPress += (obj, e) =>
         {
           app.Stop();
           e.Cancel = true;
         };
 
+        using (var spinner = new ConsoleSpinner())
+        {
+          while (appThread.IsAlive)
+            spinner.Turn();
+        }
+
+        appThread.Join();
+
         Log.Information(app.IsAborted ? "Application has failed" : "Application completed successfully");
+        Log.Information(app.IsAborted ? ApplicationConstants.Error.ToString() : ApplicationConstants.Success.ToString());
         Environment.Exit(app.IsAborted ? ApplicationConstants.Error : ApplicationConstants.Success);
       }
       catch (Exception e)
       {
         Log.Error(e.Message);
-        Environment.Exit(ApplicationConstants.Error); 
+        Environment.Exit(ApplicationConstants.Error);
       }
     }
   }

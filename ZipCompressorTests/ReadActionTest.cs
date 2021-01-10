@@ -21,18 +21,17 @@ namespace ZipCompressorTests
       _inputChunkQueue = new ChunkQueue(Environment.ProcessorCount);
     }
 
-
     [Theory]
     [InlineData("Hello!")]
     [InlineData("This is test data")]
     [InlineData("Test read this chunks")]
     public void CompressChunkReaderTest(string inputString)
     {
-      var compressor = new CompressChunkReader(_inputChunkQueue, ApplicationConstants.DefaultByteBufferSize);
+      var chunkReader = new CompressChunkReader(_inputChunkQueue, ApplicationConstants.DefaultByteBufferSize);
       var bytes = Encoding.ASCII.GetBytes(inputString);
       using var inputStream = new MemoryStream(bytes);
 
-      compressor.Read(inputStream, _token);
+      chunkReader.Read(inputStream, _token);
       var result = _inputChunkQueue.Read(_token);
 
       result.Should().BeEquivalentTo(new { Bytes = bytes, Index = 0 });

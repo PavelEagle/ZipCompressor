@@ -2,7 +2,7 @@
 
 namespace ZipCompressor.App
 {
-  public class PipeClosedException : Exception
+  public class ChunkQueueCompleted : Exception
   {
   }
 }

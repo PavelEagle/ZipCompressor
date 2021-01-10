@@ -12,18 +12,18 @@ namespace ZipCompressor.Services
       var managementObjects = new ManagementObjectSearcher("select * from Win32_OperatingSystem");
       foreach (var managementObject in managementObjects.Get())
       {
+        //Display operating system caption
         if (managementObject["Caption"] != null)
-        {
-          Log.Information("Operating System Name  :  " + managementObject["Caption"]);   //Display operating system caption
-        }
+          Log.Information("Operating System Name  :  " + managementObject["Caption"]);
+
+        //Display operating system architecture
         if (managementObject["OSArchitecture"] != null)
-        {
-          Log.Information("Operating System Architecture  :  " + managementObject["OSArchitecture"]);   //Display operating system architecture.
-        }
+          Log.Information("Operating System Architecture  :  " + managementObject["OSArchitecture"]);
+
+        //Display operating system version
         if (managementObject["CSDVersion"] != null)
-        {
-          Log.Information("Operating System Service Pack   :  " + managementObject["CSDVersion"]);     //Display operating system version.
-        }
+          Log.Information("Operating System Service Pack   :  " + managementObject["CSDVersion"]); 
+        
       }
     }
 

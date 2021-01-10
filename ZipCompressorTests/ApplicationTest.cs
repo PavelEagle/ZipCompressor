@@ -23,10 +23,10 @@ namespace ZipCompressorTests
       var compressArgs = new[] { "compress", "test-orig.txt", "test.gz" };
       var decompressArgs = new[] { "decompress", "test.gz", "test-result.txt" };
 
-      using var compressorApp = new ZipApplication(Options.Validation(compressArgs));
+      var compressorApp = new ZipApplication(Options.Validation(compressArgs));
       compressorApp.Start();
       
-      using var deCompressorApp = new ZipApplication(Options.Validation(decompressArgs));
+      var deCompressorApp = new ZipApplication(Options.Validation(decompressArgs));
       deCompressorApp.Start();
 
       var result = File.ReadAllText(resultFileName);
