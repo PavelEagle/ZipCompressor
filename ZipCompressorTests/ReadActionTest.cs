@@ -21,41 +21,29 @@ namespace ZipCompressorTests
       _inputChunkQueue = new ChunkQueue(Environment.ProcessorCount);
     }
 
+    //TODO DecompressChunkReaderTest
     [Theory]
     [InlineData("Hello!")]
     [InlineData("This is test data")]
     [InlineData("Test read this chunks")]
-    public void CompressChunkReaderTest(string inputString)
+    public void ShouldBeEqualChunk_WhenChunkWasRead(string inputString)
     {
+      // Given   
       var chunkReader = new CompressChunkReader(_inputChunkQueue, ApplicationConstants.DefaultByteBufferSize);
       var bytes = Encoding.ASCII.GetBytes(inputString);
       using var inputStream = new MemoryStream(bytes);
 
+      // When
       chunkReader.Read(inputStream, _token);
-      var result = _inputChunkQueue.Read(_token);
 
+      // Then
+      var result = _inputChunkQueue.Read(_token);
       result.Should().BeEquivalentTo(new { Bytes = bytes, Index = 0 });
     }
 
-    //[Theory]
-    //[InlineData("Hello!")]
-    //[InlineData("This is test data")]
-    //[InlineData("Test read this chunks")]
-    //public void DeCompressChunkReaderTest(string inputString)
-    //{
-    //  var compressor = new DecompressChunkReader(_inputChunkQueue, ApplicationConstants.DefaultByteBufferSize);
-    //  var bytes = Encoding.ASCII.GetBytes(inputString);
-
-    //  using var inputStream = new MemoryStream(bytes);
-
-    //  compressor.Read(inputStream, _token);
-    //  var result = _inputChunkQueue.Read(_token);
-
-    //  result.Should().BeEquivalentTo(new { Bytes = bytes, Index = 0 });
-    //}
-
     public void Dispose()
     {
+      _inputChunkQueue.Clear();
     }
   }
 }

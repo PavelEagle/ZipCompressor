@@ -1,45 +1,86 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Threading;
 using FluentAssertions;
 using Xunit;
-using ZipCompressor.App;
-using ZipCompressor.App.Actions.Read;
 using ZipCompressor.Common;
 
 namespace ZipCompressorTests
 {
   public class ValidationTest : IDisposable
   {
-    private readonly CancellationToken _token;
-    private readonly ChunkQueue _inputChunkQueue;
+    private const string FileName = "testFile";
 
     public ValidationTest()
     {
-      _token = new CancellationToken();
-      _inputChunkQueue = new ChunkQueue(Environment.ProcessorCount);
+      using var stream = File.Create(FileName);
     }
 
+    [Theory]
+    [InlineData("compress", "testFile", "testFile-result")]
+    [InlineData("decompress", "testFile", "testFile-result")]
+    public void ShouldBeSuccess_WhenMethodCompressOrDecompress(params string[] args)
+    {
+      // When
+      Action validation = () => Options.Validation(args);
+
+      // Then
+      validation.Should().NotThrow();
+    }
 
     [Theory]
-    [InlineData("Hello!")]
-    [InlineData("This is test data")]
-    [InlineData("Test read this chunks")]
-    public void CompressChunkReaderTest(string inputString)
+    [InlineData("test", "testFile", "testFile-result")]
+    [InlineData("some-test", "testFile", "testFile-result")]
+    public void ShouldBeException_WhenMethodNoCompressOrDecompress(params string[] args)
     {
-      var compressor = new CompressChunkReader(_inputChunkQueue, ApplicationConstants.DefaultByteBufferSize);
-      var bytes = Encoding.ASCII.GetBytes(inputString);
-      using var inputStream = new MemoryStream(bytes);
+      // When
+      Action validation = () => Options.Validation(args);
 
-      compressor.Read(inputStream, _token);
-      var result = _inputChunkQueue.Read(_token);
+      // Then
+      validation.Should().Throw<ArgumentException>();
+    }
 
-      result.Should().BeEquivalentTo(new { Bytes = bytes, Index = 0 });
+    [Theory]
+    [InlineData("one")]
+    [InlineData("one", "two")]
+    [InlineData("one", "two", "three", "four")]
+
+    public void ShouldBeException_WhenNoThreeArguments(params string[] args)
+    {
+      // When
+      Action validation = () => Options.Validation(args);
+
+      // Then
+      validation.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("compress", "testFile:dsd%", "testFile-result")]
+    [InlineData("decompress", "testFile", "")]
+    public void ShouldBeException_WhenIncorrectPath(params string[] args)
+    {
+      // When
+      Action validation = () => Options.Validation(args);
+
+      // Then
+      validation.Should().Throw<ArgumentException>();
+    }
+
+    [Fact]
+    public void ShouldBeException_WhenFileIsNotExists()
+    {
+      //Given 
+      var args = new[] {"compress", "someTest", "testFile-result"};
+
+      // When
+      Action validation = () => Options.Validation(args);
+
+      // Then
+      validation.Should().Throw<ArgumentException>();
     }
 
     public void Dispose()
     {
+      File.Delete(FileName);
     }
   }
 }

@@ -16,12 +16,8 @@ namespace ZipCompressor
 #if DEBUG
       args = new[]
       {
-        "decompress",
-        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz",
-        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3-orig.txt"
-        //"compress",
-        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.txt",
-        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\test3.gz"
+        "decompress", "test3.gz", "test3-orig.txt"
+        //"compress", "test3.txt", "test3.gz"
       };
 #endif
 
@@ -45,12 +41,15 @@ namespace ZipCompressor
           e.Cancel = true;
         };
 
-        using (var spinner = new ConsoleSpinner())
+        if (!Debugger.IsAttached)
         {
-          while (appThread.IsAlive)
-            spinner.Turn();
+          using (var spinner = new ConsoleSpinner())
+          {
+            while (appThread.IsAlive)
+              spinner.Turn();
+          }
         }
-
+        
         appThread.Join();
 
         Log.Information(app.IsAborted ? "Application has failed" : "Application completed successfully");

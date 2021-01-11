@@ -43,7 +43,7 @@ namespace ZipCompressor.Common
       if (!File.Exists(inputFilePath))
         throw new ArgumentException($"Input file is not exists: {inputFilePath}");
 
-      if (string.IsNullOrEmpty(inputFilePath) || outputFilePath.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+      if (string.IsNullOrEmpty(outputFilePath) || outputFilePath.IndexOfAny(Path.GetInvalidPathChars()) != -1)
         throw new ArgumentException($"Incorrect input file path: {outputFilePath}");
       if (File.Exists(outputFilePath))
       {

@@ -22,24 +22,49 @@ namespace ZipCompressorTests
     }
 
     [Fact]
-    public void CompressEmptyChunkReaderTest()
+    public void ShouldBeEmpty_WhenZeroChunksWasWritten()
     {
+      // Given
       var maxElementsInChunk = 0;
 
+      // When
       var chunkWriter = new ChunksWriter(_outputChunkQueue);
       using var outputStream = new MemoryStream();
-
       chunkWriter.Write(outputStream, _token, maxElementsInChunk);
 
+      //Then
       var result = outputStream.ToArray();
 
       result.Length.Should().Be(0);
     }
 
+    [Theory]
+    [InlineData("Hello!")]
+    [InlineData("This is test data")]
+    [InlineData("Test read this chunks")]
+    public void ShouldBeEqualBytes_WhenChunkWasWritten(string inputString)
+    {
+      // Given  
+      var maxElementsInChunk = 1;
+      var bytes = Encoding.ASCII.GetBytes(inputString);
+      _outputChunkQueue.Write(new Chunk() { Bytes = bytes }, _token);
+
+      // When
+      var chunkWriter = new ChunksWriter(_outputChunkQueue);
+      using var outputStream = new MemoryStream();
+      chunkWriter.Write(outputStream, _token, maxElementsInChunk);
+
+      // Then
+      var result = outputStream.ToArray();
+
+      result.Should().BeEquivalentTo(bytes);
+    }
+
 
     [Fact]
-    public void CompressChunkReaderTest()
+    public void ShouldBeEqualBytes_WhenChunksWasWritten()
     {
+      // Given  
       var maxElementsInChunk = 3;
       var chunkData = new[]
       {
@@ -48,20 +73,16 @@ namespace ZipCompressorTests
         new Chunk { Bytes = Encoding.ASCII.GetBytes("Test read this chunks"), Index = 2 }
       };
 
-      _outputChunkQueue.Connect();
       foreach (var chunk in chunkData)
-      {
         _outputChunkQueue.Write(chunk, _token);
-      }
 
+      // When
       var chunkWriter = new ChunksWriter(_outputChunkQueue);
       using var outputStream = new MemoryStream();
-
       chunkWriter.Write(outputStream, _token, maxElementsInChunk);
 
+      // Then
       var result = outputStream.ToArray();
-      _outputChunkQueue.Disconnect();
-
       var inputData = chunkData.Select(x => x.Bytes).Aggregate((a, b) => a.Concat(b).ToArray());
 
       result.Should().BeEquivalentTo(inputData);

@@ -10,35 +10,38 @@ namespace ZipCompressorTests
 {
   public class ApplicationTest : IDisposable
   {
+    private const string OriginFilename = "test-orig.txt";
+    private const string CompressedFileName = "test.gz";
+    private const string ResultFileName = "test-result.txt";
+
     [Fact]
-    public void FullAppTest()
+    public void ShouldBeEqualOriginAndResultedFiles_WhenCompressAndDecompress()
     {
-      var originFilename = "test-orig.txt";
-      var resultFileName = "test-result.txt";
+      // Given   
       var inputText = "Some test data";
       var bytes = Encoding.ASCII.GetBytes(inputText);
-
-      File.WriteAllBytes(originFilename, bytes);
+      File.WriteAllBytes(OriginFilename, bytes);
  
-      var compressArgs = new[] { "compress", "test-orig.txt", "test.gz" };
-      var decompressArgs = new[] { "decompress", "test.gz", "test-result.txt" };
+      var compressArgs = new[] { "compress", OriginFilename, CompressedFileName };
+      var decompressArgs = new[] { "decompress", CompressedFileName, ResultFileName };
 
+      // When
       var compressorApp = new ZipApplication(Options.Validation(compressArgs));
       compressorApp.Start();
       
       var deCompressorApp = new ZipApplication(Options.Validation(decompressArgs));
       deCompressorApp.Start();
 
-      var result = File.ReadAllText(resultFileName);
-
+      // Then
+      var result = File.ReadAllText(ResultFileName);
       result.Should().BeEquivalentTo(inputText);
     }
 
     public void Dispose()
     {
-      File.Delete("test-orig.txt");
-      File.Delete("test-result.txt");
-      File.Delete("test.gz");
+      File.Delete(OriginFilename);
+      File.Delete(CompressedFileName);
+      File.Delete(ResultFileName);
     }
   }
 }

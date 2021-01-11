@@ -7,9 +7,7 @@ namespace ZipCompressor.Services
   public class ConsoleSpinner: IDisposable
   {
     private static readonly string[] _sequence = { "     ", "=>   ", "==>  ", "===> ", "====>" };
-
     private const int Delay = 200;
-
     private int _counter;
 
     public ConsoleSpinner()

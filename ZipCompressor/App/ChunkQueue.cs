@@ -23,18 +23,21 @@ namespace ZipCompressor.App
 
       while (true)
       {
-        if (_activeWriters == 0 && _wasEverOpened)
-          throw new ChunkQueueCompleted();
-
-        _readSemaphore.Wait(400, token);
+        _readSemaphore.Wait(500, token);
         lock (_lock)
         {
           if (_queue.Count == 0)
+          {
+            if (_activeWriters == 0 && _wasEverOpened)
+              throw new ChunkQueueCompleted();
+            
             continue;
+          }
         }
 
         break;
       }
+
       _writeSemaphore.Release();
       lock (_lock)
       {

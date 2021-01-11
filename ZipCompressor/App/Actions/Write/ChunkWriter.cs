@@ -17,7 +17,7 @@ namespace ZipCompressor.App.Actions.Write
     public void Write(Stream outputStream, CancellationToken token, int expectedChunksCount, bool writeChunksLengths = false)
     {
       var index = 0;
-      while (!token.IsCancellationRequested)
+      while (!token.IsCancellationRequested && index < expectedChunksCount)
       {
         try
         {
