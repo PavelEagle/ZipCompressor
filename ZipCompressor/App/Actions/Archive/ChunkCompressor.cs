@@ -21,11 +21,11 @@ namespace ZipCompressor.App.Actions.Archive
     {
       _outputQueue.Connect();
       using var bufferedStream = new MemoryStream();
-      while (!token.IsCancellationRequested)
+
+      while (_inputQueue.TryReadChunk(out var chunk, token) && !token.IsCancellationRequested)
       {
         try
         {
-          var chunk = _inputQueue.Read(token);
           using (var gzipStream = new GZipStream(bufferedStream, CompressionMode.Compress, true))
           {
             gzipStream.Write(chunk.Bytes, 0, chunk.Bytes.Length);
@@ -36,17 +36,14 @@ namespace ZipCompressor.App.Actions.Archive
           bufferedStream.SetLength(0);
           Log.Debug($"Compressed chunk {chunk.Index}");
         }
-        catch (ChunkQueueCompleted)
-        {
-          Log.Debug("Compressing complete");
-          break;
-        }
         catch (Exception e)
         {
           Log.Error("Compressing failed with error: " + e.Message);
           _outputQueue.Clear();
           throw;
         }
+
+        Log.Debug("Compressing complete");
       }
 
       _outputQueue.Disconnect();

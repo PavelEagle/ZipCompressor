@@ -34,7 +34,7 @@ namespace ZipCompressor.App.Actions.Read
           index++;
         }
 
-        Log.Information("Reading complete");
+        Log.Debug("Reading complete");
         _inputQueue.Disconnect();
       }
       catch (Exception e)

@@ -37,7 +37,7 @@ namespace ZipCompressorTests
       chunkReader.Read(inputStream, _token);
 
       // Then
-      var result = _inputChunkQueue.Read(_token);
+      _inputChunkQueue.TryReadChunk(out var result, _token);
       result.Should().BeEquivalentTo(new { Bytes = bytes, Index = 0 });
     }
 

@@ -16,8 +16,12 @@ namespace ZipCompressor
 #if DEBUG
       args = new[]
       {
-        "decompress", "test3.gz", "test3-orig.txt"
-        //"compress", "test3.txt", "test3.gz"
+        "decompress",
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\4.gz",
+        @"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\4-orig.exe"
+        //"compress",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\4.exe",
+        //@"C:\Users\Pavel\Documents\GitHub\ZipCompressor\files\4.gz"
       };
 #endif
 

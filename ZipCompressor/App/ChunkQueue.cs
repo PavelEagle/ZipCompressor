@@ -18,19 +18,22 @@ namespace ZipCompressor.App
       _writeSemaphore = new SemaphoreSlim(maxElements, maxElements);
     }
 
-    public Chunk Read(CancellationToken token)
+    public bool TryReadChunk(out Chunk chunk, CancellationToken token)
     {
-
       while (true)
       {
         _readSemaphore.Wait(500, token);
+
         lock (_lock)
         {
           if (_queue.Count == 0)
           {
             if (_activeWriters == 0 && _wasEverOpened)
-              throw new ChunkQueueCompleted();
-            
+            {
+              chunk = default;
+              return false;
+            }
+
             continue;
           }
         }
@@ -41,13 +44,14 @@ namespace ZipCompressor.App
       _writeSemaphore.Release();
       lock (_lock)
       {
-        return _queue.Dequeue();
+        chunk = _queue.Dequeue();
+        return true;
       }
     }
 
     public void Write(Chunk chunk, CancellationToken token)
     {
-      _writeSemaphore.Wait(30000, token);
+      _writeSemaphore.Wait(int.MaxValue, token);
       lock (_lock)
       {
         _queue.Enqueue(chunk);
