@@ -31,7 +31,7 @@ namespace ZipCompressor.App.Actions.Archive
             gzipStream.Write(chunk.Bytes, 0, chunk.Bytes.Length);
           }
 
-          _outputQueue.Write(new Chunk { Bytes = bufferedStream.ToArray(), Index = chunk.Index }, token);
+          _outputQueue.WriteChunk(new Chunk { Bytes = bufferedStream.ToArray(), Index = chunk.Index }, token);
           bufferedStream.Position = 0;
           bufferedStream.SetLength(0);
           Log.Debug($"Compressed chunk {chunk.Index}");

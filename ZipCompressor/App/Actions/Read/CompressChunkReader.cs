@@ -29,7 +29,7 @@ namespace ZipCompressor.App.Actions.Read
         {
           var chunkBytes = new byte[bytesRead];
           Buffer.BlockCopy(buffer, 0, chunkBytes, 0, bytesRead);
-          _inputQueue.Write(new Chunk { Bytes = chunkBytes, Index = index }, token);
+          _inputQueue.WriteChunk(new Chunk { Bytes = chunkBytes, Index = index }, token);
           Log.Debug($"Reading chunk {index}");
           index++;
         }

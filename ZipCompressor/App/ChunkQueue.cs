@@ -49,7 +49,7 @@ namespace ZipCompressor.App
       }
     }
 
-    public void Write(Chunk chunk, CancellationToken token)
+    public void WriteChunk(Chunk chunk, CancellationToken token)
     {
       _writeSemaphore.Wait(int.MaxValue, token);
       lock (_lock)

@@ -47,7 +47,7 @@ namespace ZipCompressorTests
       // Given  
       var maxElementsInChunk = 1;
       var bytes = Encoding.ASCII.GetBytes(inputString);
-      _outputChunkQueue.Write(new Chunk() { Bytes = bytes }, _token);
+      _outputChunkQueue.WriteChunk(new Chunk() { Bytes = bytes }, _token);
 
       // When
       var chunkWriter = new ChunksWriter(_outputChunkQueue);
@@ -74,7 +74,7 @@ namespace ZipCompressorTests
       };
 
       foreach (var chunk in chunkData)
-        _outputChunkQueue.Write(chunk, _token);
+        _outputChunkQueue.WriteChunk(chunk, _token);
 
       // When
       var chunkWriter = new ChunksWriter(_outputChunkQueue);
